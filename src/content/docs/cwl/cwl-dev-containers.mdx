@@ -1,12 +1,15 @@
 ---
-title: "Dev Containers with CWL"
-lastUpdated: 2025-07-25
+title: Dev Containers with CWL
+lastUpdated: 2025-07-28
 authors:
   - pauline-hans
 sidebar:
   order: 8
 ---
-# Dev Containers and CWL
+
+import { Steps } from '@astrojs/starlight/components';
+
+Here we introduce Dev Containers and how to use them for data analysis with CWL.
 
 ## What is a Docker Container?
 
@@ -14,10 +17,12 @@ A container is a standardized software unit that bundles program code and all ne
 
 A Docker container image is a lightweight, self-contained, executable software package that contains everything necessary to run an application: the code, the runtime environment, system tools, libraries, and configurations. Using Docker containers can, for example, improve reproducibility, which is a significant advantage over non-isolated projects.
 
-Further information about Docker and Docker containers can be found here:
+:::note
+Further information about Docker and Docker containers can be found here
 
 - https://www.docker.com/resources/what-container/
 - https://www.docker.com/products/docker-desktop/
+:::
 
 ## What is a Dev Container?
 
@@ -27,36 +32,34 @@ Think of it like this: every Jacuzzi is a whirlpool, but not every whirlpool is 
 
 ## Common Workflow Language
 
-The Common Workflow Language (CWL) is explained in detail in the Knowledge Base:
-
-- https://nfdi4plants.github.io/nfdi4plants.knowledgebase/cwl/cwl-introduction/
-
-Additional information can be found here:  
-- https://www.commonwl.org/    
-
-# Tutorial
+The Common Workflow Language (CWL) is introduced [here](/nfdi4plants.knowledgebase/cwl/cwl-introduction/)
 
 ## Setup
 
-1. Install VS Code:  
-   - https://code.visualstudio.com/download
+<Steps>
 
-2. Install the Dev Containers extension:  
-   - https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+1. Install VS Code
+    - https://code.visualstudio.com/download
+2. Install the Dev Containers extension
+    - https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+3. Install other necessary extensions for your project
+    - For example: .NET Install Tool or Ionide for F#
+4. Install Docker Desktop
+    - https://docs.docker.com/desktop/setup/install/windows-install/
 
-3. Install other necessary extensions for your project:  
-   - For example: .NET Install Tool or Ionide for F#
-
-4. Install Docker Desktop:  
-   - https://docs.docker.com/desktop/setup/install/windows-install/
-
+</Steps>
 
 ## Dev Container in VS Code
 
-1. Create a new folder with your project name and open it in VS Code.  
+<Steps>
+
+1. Create a new folder with your project name and open it in VS Code.
 2. In the VS Code menu bar, click **View** > **Command Palette** and run the following command:
 
-**`Dev Containers: Add Dev Container Configuration Files...`**
+    **`Dev Containers: Add Dev Container Configuration Files...`**
+
+</Steps>
+
 
 ## Settings
 
@@ -64,30 +67,40 @@ There are two options for setting up your environment:
 
 ### Option A
 
+<Steps>
+
 1. Start with "Add configuration to workspace"  
 2. Choose **.NET (C#), Node.js (TypeScript) & MS SQL**  
 3. Select `8.0-bookworm` (default)  
 4. Select `-lts` (default)  
 5. Then press OK, or select additional features if desired
 
-**Note:** If you choose this option, you must manually add the F# extension to the `devcontainer.json` file. Insert `"ms-dotnettools.fsharp"` in the `"extensions"` section.
+</Steps>
+
+:::note
+If you choose this option, you must manually add the F# extension to the `devcontainer.json` file. Insert `"ms-dotnettools.fsharp"` in the `"extensions"` section.
+:::
 
 ### Option B
 
-1. Start with "Add configuration to workspace"  
+<Steps>
+1. Start with "Add configuration to workspace"
 2. Choose **F# (.NET)** and press OK
+</Steps>
 
-**Note:** If you choose this option, you’ll need to create your own Dockerfile!
+:::note
+If you choose this option, you’ll need to create your own Dockerfile!
+:::
 
-You now have the files needed to run the Dev Container: `devcontainer.json` and `Dockerfile`.  
-- `devcontainer.json` tells VS Code how to work with that environment (extensions, settings, folder paths).  
+You now have the files needed to run the Dev Container: `devcontainer.json` and `Dockerfile`.
+- `devcontainer.json` tells VS Code how to work with that environment (extensions, settings, folder paths).
 - The `Dockerfile` is a text file with instructions to build a Docker image—it defines everything needed to set up and run your application in a container.
 
 ## Example
 
 This example uses **Option B**, which requires creating a Dockerfile. You can create it by running the command `touch Dockerfile` in the VS Code terminal. The image below shows a simple Dockerfile:
 
-``` Dockerfile
+```dockerfile title=Dockerfile
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 ENV DOTNET.DockerScoutOptOut=1
@@ -108,7 +121,7 @@ Now we have everything we need to start our project.
 
 This tutorial starts with two scripts, each of which creates a column chart and a target folder to store the results.
 
-```fsx  
+```fsharp title=exampleChart1.fsx
 
 #r "nuget: Plotly.NET, 5.0.0"
 #r "nuget: Plotly.NET.Interactive, 5.0.0"
@@ -136,7 +149,7 @@ buildChart |> Chart.saveHtml (Path.Combine(outputDir, "exampleChart1"))
 ```
 The second example Script is identical 
 
-```fsx2
+```fsharp title=exampleChart2.fsx
 #r "nuget: Plotly.NET, 5.0.0"
 #r "nuget: Plotly.NET.Interactive, 5.0.0"
 #r "nuget: Plotly.NET.ImageExport, 6.1.0"
@@ -162,7 +175,7 @@ buildChart |> Chart.saveHtml (Path.Combine(outputDir, "exampleChart2"))
 ```
 After that we need the CWL Command-Line-Tools and the CWL-Workflow 
 
-```CWL 
+```yaml title=exampleChart1.cwl
 cwlVersion: v1.2
 class: CommandLineTool
 hints:
@@ -192,8 +205,9 @@ outputs:
     type: Directory
     outputBinding: 
       glob: ./Results
-``` 
-```CWL 
+```
+
+```yaml title=exampleChart2.cwl
 cwlVersion: v1.2
 class: CommandLineTool
 hints:
@@ -226,7 +240,7 @@ outputs:
 ```
 With the Command-Line-Tools we can create the CWL workflow: 
 
-```CWL workflow
+```yaml title=workflow.cwl
 cwlVersion: v1.2
 class: Workflow 
 hints: 
@@ -265,12 +279,21 @@ outputs:
     outputSource: exampleChart2/output_exampleChart2
 ```
 We are almost there, because the YAML file is missing for the final execution. 
-(Additional information about the YAML file can be found here: https://www.commonwl.org/user_guide/topics/yaml-guide.html). The YAML file for this tutorial looks like this: 
 
-```yaml 
+:::tip
+Additional information about the YAML file can be found [here](https://www.commonwl.org/user_guide/topics/yaml-guide.html).
+:::
+
+The YAML file for this tutorial looks like this: 
+
+```yaml title=run.yml
 devcontainerTutorial: 
     class: Directory 
     path: ./ 
-``` 
-ANow you have everything you need to run a CWL workflow within a Docker container. Just open your WSL (or terminal, if you're using Linux) and run the following command: `cwltool ./workflow.cwl ./run.yml`. 
+```
 
+Now you have everything you need to run a CWL workflow within a Docker container. Just open your WSL (or terminal, if you're using Linux) and run the following command:
+
+```bash
+cwltool ./workflow.cwl ./run.yml
+```
